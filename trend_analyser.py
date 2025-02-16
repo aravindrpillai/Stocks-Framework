@@ -10,16 +10,21 @@ class TrendAnalyser():
     'Main Function
     '''
     def analyse(self):
-        sma12, sma21 = self.__sma__()
-        ema9, ema12, ema21 = self.__ema__()
+        sma9, sma12, sma21, sma60, sma90 = self.__sma__()
+        ema9, ema12, ema21, ema60, ema90 = self.__ema__()
         last_macd, last_signal, last_histogram, previous_histograms = self.__macd__()
 
         result = {
+            "sma9": sma9,
             "sma12": sma12,
             "sma21": sma21,
-            "EMA_9": ema9,
-            "EMA_12": ema12,
-            "EMA_21": ema21,
+            "sma60": sma60,
+            "sma90": sma90,
+            "ema9": ema9,
+            "ema12": ema12,
+            "ema21": ema21,
+            "ema60": ema60,
+            "ema90": ema90,
             "macd": last_macd,
             "signal": last_signal,
             "histogram": last_histogram,
@@ -29,17 +34,23 @@ class TrendAnalyser():
         return result
 
     '''
-    ' SMA - Simple MOving Average
+    ' SMA - Simple Moving Average
     ' The average price over a set period (a Day, Week or Month).
 	' This smoothens the price data and identify the overall trend direction.
 	' Used to confirm occured trends so far.
     '''
     def __sma__(self):
+        self.data["sma9"] = self.data["Close"].rolling(window=9).mean()
         self.data["sma12"] = self.data["Close"].rolling(window=12).mean()
         self.data["sma21"] = self.data["Close"].rolling(window=21).mean()
+        self.data["sma60"] = self.data["Close"].rolling(window=60).mean()
+        self.data["sma90"] = self.data["Close"].rolling(window=90).mean()
+        last_sma9 = round(float(self.data["sma9"].iloc[-1]), self.round_to)
         last_sma12 = round(float(self.data["sma12"].iloc[-1]), self.round_to)
         last_sma21 = round(float(self.data["sma21"].iloc[-1]), self.round_to)
-        return last_sma12, last_sma21
+        last_sma60 = round(float(self.data["sma21"].iloc[-1]), self.round_to)
+        last_sma90 = round(float(self.data["sma21"].iloc[-1]), self.round_to)
+        return last_sma9, last_sma12, last_sma21, last_sma60, last_sma90
 
 
     '''
@@ -52,10 +63,14 @@ class TrendAnalyser():
         self.data["ema9"] = self.data["Close"].ewm(span=9, adjust=False).mean()
         self.data["ema12"] = self.data["Close"].ewm(span=12, adjust=False).mean()
         self.data["ema21"] = self.data["Close"].ewm(span=21, adjust=False).mean()
+        self.data["ema60"] = self.data["Close"].ewm(span=60, adjust=False).mean()
+        self.data["ema90"] = self.data["Close"].ewm(span=90, adjust=False).mean()
         last_ema9 = round(float(self.data["ema9"].iloc[-1]), self.round_to)
         last_ema12 = round(float(self.data["ema12"].iloc[-1]), self.round_to)
         last_ema21 = round(float(self.data["ema21"].iloc[-1]), self.round_to)
-        return last_ema9, last_ema12, last_ema21
+        last_ema60 = round(float(self.data["ema60"].iloc[-1]), self.round_to)
+        last_ema90 = round(float(self.data["ema90"].iloc[-1]), self.round_to)
+        return last_ema9, last_ema12, last_ema21, last_ema60, last_ema90
 
 
         
@@ -105,8 +120,8 @@ class TrendAnalyser():
 if __name__ == "__main__":
     import yfinance as yf   
     ticker = "RELIANCE.NS"
-    period = "1d"
-    interval = "5m"
+    period = "60d"
+    interval = "5d"
     stock = yf.Ticker(ticker)
     last_price = stock.fast_info["lastPrice"]
     data = stock.history(period=period, interval=interval)
